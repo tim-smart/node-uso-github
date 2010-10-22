@@ -1,6 +1,5 @@
-request = require 'request'
-qs      = require 'querystring'
-http    = require 'http'
+qs   = require 'querystring'
+http = require 'http'
 
 usoRequest = (uso, options, done) ->
   options.method or= 'GET'
