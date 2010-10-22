@@ -121,15 +121,15 @@ router.post('/hook').module('post').bind (request, response, next) ->
 
     for file in changed_files when file.match /\.user\.js$/
       changes[file] or=
-        state:   'changed'
         url:     body.repository.url
         commits: []
+      changes[file].state = 'changed'
       changes[file].commits.push commit
     for file in commit.removed when file.match /\.user\.js$/
       changes[file] or=
-        state:    'removed'
         url:      body.repository.url
         commits: []
+      changes[file].state = 'removed'
       changes[file].commits.push commit
 
   # Branch create? Re-deploy all scripts
