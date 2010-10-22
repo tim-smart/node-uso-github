@@ -98,15 +98,16 @@ createPost = (file, info) ->
 router.post('/hook').module('post').bind (request, response, next) ->
   console.log '[GITHUB] Received hook'
 
-  # We have recieved a github post commit hook
-  body = qs.parse response.body
+  # We aren't responding
+  next()
 
+  # We have recieved a github post commit hook
   # If it has a payload, then we are in business.
-  return next() if not body.payload
   try
+    body = qs.parse response.body
     body = JSON.parse body.payload
   catch error
-    return next()
+    return
 
   # We have the commits, now parse the suckers.
   if "refs/heads/#{config.repo.branch}" isnt body.ref
