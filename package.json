@@ -1,0 +1,11 @@
+{
+  "name": "uso-github",
+  "description": "Sync's a repo to a USO account.",
+  "version": "0.0.1",
+  "author": "Tim Smart",
+  "engine": [ "node >=0.2.0" ],
+  "dependencies": {
+    "biggie-router": ">=0.1.10"
+  }
+}
+

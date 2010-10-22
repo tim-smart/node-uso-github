@@ -1,0 +1,152 @@
+router     = new (require 'biggie-router')
+http       = require 'http'
+url_parser = require 'url'
+Uso        = require './uso'
+config     = require '../config'
+qs         = require 'querystring'
+fs         = require 'fs'
+path       = require 'path'
+
+uso    = new Uso config.uso.username, config.uso.password
+github = http.createClient 80, 'github.com'
+
+scripts_path = path.join __dirname, '..', config.db_path
+try
+  scripts = JSON.parse fs.readFileSync scripts_path, 'utf8'
+catch error
+  scripts = {}
+
+saveScripts = (done) ->
+  console.log '[DB] Saving to ' + scripts_path
+  fs.writeFile scripts_path, new Buffer(JSON.stringify scripts, null, '  '), done
+
+newScript = (file, commit) ->
+  downloadSource commit.url, file, (source) ->
+    uso.login (error) ->
+      if error
+        return console.log "[USO] Could not log in to create script"
+      uso.newScript source, (error, script_id) ->
+        return console.log "[USO] Could not create #{file}." if error
+        console.log "[USO] Script #{file} created."
+        scripts[file] =
+          id:    script_id
+          topic: null
+        saveScripts()
+        createTopic file, commit
+
+modifyScript = (file, commit) ->
+  return unless script = scripts[file]
+
+  downloadSource commit.url, file, (source) ->
+    uso.login (error) ->
+      if error
+        return console.log "[USO] Could not log in to modify script"
+      uso.updateScript script.id, source, (error, response) ->
+        return console.log "[USO] Could not modify #{file}." if error
+        console.log "[USO] Script #{file} modified."
+        createPost file, commit
+
+unwatchScript = (file) ->
+  return unless script = scripts[file]
+
+  console.log "[DB] Removing script #{file}"
+  delete scripts[file]
+  saveScripts()
+
+downloadSource = (url, file, done) ->
+  request = github.request 'GET', url_parser.parse(url).pathname + "/raw/#{config.repo.branch}/#{file}",
+    Host: 'github.com'
+  request.on 'response', (response) ->
+    response.setEncoding 'utf8'
+    source = ''
+    response.on 'data', (chunk) ->
+      source += chunk
+    response.on 'end', -> done source
+  request.end()
+
+createTopic = (file, commit) ->
+  script = scripts[file]
+  body   = """
+           <p>This change log is auto-generated from the associated
+              <a href="#{commit.url}/commits/#{config.repo.branch}">Github commits list</a>.</p>
+           """
+  uso.createTopic 'Script', script.id, 'Change Log', body, (error, topic_id) ->
+    return console.log "[USO] Could not create change log topic for #{file}." if error
+    console.log "[USO] Created change log topic for #{file}."
+    script.topic = topic_id
+    saveScripts()
+    createPost file, commit
+
+createPost = (file, info) ->
+  script = scripts[file]
+  return unless script.topic
+
+  body    = '<p>Commits since last version:</p><ul><li>'
+  commits = []
+
+  for commit in info.commits
+    # TODO: Escape HTML entities in message.
+    commits.push "<a href='#{info.url}/commit/#{commit.id}'>#{commit.message}</a>"
+
+  body += commits.join '</li><li>'
+  body += '</li></ul>'
+
+  uso.createPost script.topic, body, (error) ->
+    return console.log "[USO] Could not add change log post for #{file}." if error
+    console.log "[USO] Added change log entry for #{file}."
+
+router.post('/hook').module('post').bind (request, response, next) ->
+  console.log '[GITHUB] Received hook'
+
+  # We have recieved a github post commit hook
+  body = qs.parse response.body
+
+  # If it has a payload, then we are in business.
+  return next() if not body.payload
+  try
+    body = JSON.parse body.payload
+  catch error
+    return next()
+
+  # We have the commits, now parse the suckers.
+  if "refs/heads/#{config.repo.branch}" isnt body.ref
+    return console.log "[GITHUB] Branch didn't match '#{config.repo.branch}'. Ignoring"
+
+  changes = {}
+  for commit in body.commits
+    changed_files = []
+    changed_files.push.apply changed_files, commit.added
+    changed_files.push.apply changed_files, commit.modified
+
+    for file in changed_files when file.match /\.user\.js$/
+      changes[file] or=
+        state:   'changed'
+        url:     body.repository.url
+        commits: []
+      changes[file].commits.push commit
+    for file in commit.removed when file.match /\.user\.js$/
+      changes[file] or=
+        state:    'removed'
+        url:      body.repository.url
+        commits: []
+      changes[file].commits.push commit
+
+  # Branch create? Re-deploy all scripts
+  if 0 is Object.keys(changes).length
+    for file in Object.keys scripts
+      changes[file] =
+        state:   'changed'
+        url:     body.repository.url
+        commits: [id: body.after, message: 'Re-deploy']
+
+  for file, task of changes
+    switch task.state
+      when 'changed'
+        if scripts[file] then modifyScript file, task
+        else                  newScript file, task
+      when 'removed'     then unwatchScript file, task
+
+router.bind (request, response) ->
+  response.send 200, "Dead end."
+
+router.listen 8080
