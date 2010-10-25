@@ -44,7 +44,10 @@ modifyScript = (file, commit) ->
       uso.updateScript script.id, source, (error, response) ->
         return console.log "[USO] Could not modify #{file}." if error
         console.log "[USO] Script #{file} modified."
-        createPost file, commit
+        if script.topic
+          createPost file, commit
+        else
+          createTopic file, commit
 
 unwatchScript = (file) ->
   return unless script = scripts[file]
