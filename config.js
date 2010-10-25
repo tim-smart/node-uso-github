@@ -1,10 +1,12 @@
 module.exports = {
-  uso:  {
+  uso:       {
     username: '',
     password: ''
   },
-  repo: {
+  repo:      {
     branch: 'uso'
   },
-  db_path: 'scripts.json',
+  db_path:   'scripts.json',
+  hook_path: 'hook',
+  port:      8080
 };
