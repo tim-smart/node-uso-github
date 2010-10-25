@@ -113,7 +113,7 @@ class Uso
         callback: done
 
   # Multipart
-  newScript: (source, done) ->
+  createScript: (source, done) ->
     @get '/scripts/new?form=true', (error, response) =>
       return done error if error
       @post

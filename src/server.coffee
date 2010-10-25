@@ -20,12 +20,12 @@ saveScripts = (done) ->
   console.log '[DB] Saving to ' + scripts_path
   fs.writeFile scripts_path, new Buffer(JSON.stringify scripts, null, '  '), done
 
-newScript = (file, commit) ->
+createScript = (file, commit) ->
   downloadSource commit.url, file, (source) ->
     uso.login (error) ->
       if error
         return console.log "[USO] Could not log in to create script"
-      uso.newScript source, (error, script_id) ->
+      uso.createScript source, (error, script_id) ->
         return console.log "[USO] Could not create #{file}." if error
         console.log "[USO] Script #{file} created."
         scripts[file] =
@@ -147,7 +147,7 @@ router.post('/hook').module('post').bind (request, response, next) ->
     switch task.state
       when 'changed'
         if scripts[file] then modifyScript file, task
-        else                  newScript file, task
+        else                  createScript file, task
       when 'removed'     then unwatchScript file, task
 
 router.bind (request, response) ->
