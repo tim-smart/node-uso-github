@@ -115,7 +115,7 @@ router.post('/' + config.hook_path).module('post').bind (request, response, next
   # Authorised owner?
   hook_owner = body.repository.owner.name.toLowerCase()
   found      = no
-  for owner in config.owners when hook_owner is owner.toLowerCase()
+  for owner in config.repo.owners when hook_owner is owner.toLowerCase()
     found = yes
   if not found
     return console.log "[GITHUB] User '#{body.repository.owner.name}' not authorised. Ignoring"
