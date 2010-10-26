@@ -112,6 +112,14 @@ router.post('/' + config.hook_path).module('post').bind (request, response, next
   catch error
     return
 
+  # Authorised owner?
+  hook_owner = body.repository.owner.toLowerCase()
+  found      = no
+  for owner in config.owners when hook_owner is owner.toLowerCase()
+    found = yes
+  if not found
+    return console.log "[GITHUB] User '#{body.repository.owner}' not authorised. Ignoring"
+
   # We have the commits, now parse the suckers.
   if "refs/heads/#{config.repo.branch}" isnt body.ref
     return console.log "[GITHUB] Branch didn't match '#{config.repo.branch}'. Ignoring"
