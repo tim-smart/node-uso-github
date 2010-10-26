@@ -113,12 +113,12 @@ router.post('/' + config.hook_path).module('post').bind (request, response, next
     return
 
   # Authorised owner?
-  hook_owner = body.repository.owner.toLowerCase()
+  hook_owner = body.repository.owner.name.toLowerCase()
   found      = no
   for owner in config.owners when hook_owner is owner.toLowerCase()
     found = yes
   if not found
-    return console.log "[GITHUB] User '#{body.repository.owner}' not authorised. Ignoring"
+    return console.log "[GITHUB] User '#{body.repository.owner.name}' not authorised. Ignoring"
 
   # We have the commits, now parse the suckers.
   if "refs/heads/#{config.repo.branch}" isnt body.ref
