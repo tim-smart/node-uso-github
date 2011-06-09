@@ -18,13 +18,22 @@ usoRequest = (uso, options) ->
   if options.body
     options.headers['Content-Length'] = Buffer.byteLength options.body
 
-  request = http.request options.method, options.uri, options.headers
-  request.on 'response', (response) ->
+  request = http.request
+    method  : options.method
+    host    : 'userscripts.org'
+    path    : options.uri
+    headers : options.headers
+  , (response) ->
     response.setEncoding 'utf8'
     body = ''
     response.on 'data', (chunk) -> body += chunk
     response.on 'end', -> handleResponse uso, options, response, body
+
+  request.on 'error', (error) ->
+    options.callback error
+
   request.end options.body || undefined
+
 
 handleResponse = (uso, options, response, body) ->
   if 'POST' is options.method and -1 is body.indexOf 'redirected</a>.</body>'
@@ -51,9 +60,8 @@ multipartEncode = (boundary, params) ->
 
 class Uso
   constructor: (username, password) ->
-    @client = http.createClient 80, Uso.HOST
-    @user   = username
-    @pass   = password
+    @user = username
+    @pass = password
 
     @last =
       auth_token: null

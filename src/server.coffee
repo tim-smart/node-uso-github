@@ -1,6 +1,6 @@
 router     = new (require 'biggie-router')
 m          = require 'middleware'
-http       = require 'http'
+https      = require 'https'
 url_parser = require 'url'
 Uso        = require './uso'
 config     = require '../config'
@@ -8,8 +8,7 @@ qs         = require 'querystring'
 fs         = require 'fs'
 path       = require 'path'
 
-uso    = new Uso config.uso.username, config.uso.password
-github = http.createClient 80, 'github.com'
+uso = new Uso config.uso.username, config.uso.password
 
 scripts_path = path.join __dirname, '..', config.db_path
 try
@@ -58,15 +57,15 @@ unwatchScript = (file) ->
   saveScripts()
 
 downloadSource = (url, file, done) ->
-  request = github.request 'GET', url_parser.parse(url).pathname + "/raw/#{config.repo.branch}/#{file}",
-    Host: 'github.com'
-  request.on 'response', (response) ->
+  https.get
+    host : 'raw.github.com'
+    path : url_parser.parse(url).pathname + "/#{config.repo.branch}/#{file}",
+  , (response) ->
     response.setEncoding 'utf8'
     source = ''
     response.on 'data', (chunk) ->
       source += chunk
     response.on 'end', -> done source
-  request.end()
 
 createTopic = (file, commit) ->
   script = scripts[file]
