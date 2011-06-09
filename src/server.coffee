@@ -1,4 +1,5 @@
 router     = new (require 'biggie-router')
+m          = require 'middleware'
 http       = require 'http'
 url_parser = require 'url'
 Uso        = require './uso'
@@ -98,7 +99,7 @@ createPost = (file, info) ->
     return console.log "[USO] Could not add change log post for #{file}." if error
     console.log "[USO] Added change log entry for #{file}."
 
-router.post('/' + config.hook_path).module('post').bind (request, response, next) ->
+router.post('/' + config.hook_path).bind(m.post()).bind (request, response, next) ->
   console.log '[GITHUB] Received hook'
 
   # We aren't responding
@@ -158,7 +159,7 @@ router.post('/' + config.hook_path).module('post').bind (request, response, next
         else                  createScript file, task
       when 'removed'     then unwatchScript file, task
 
-router.bind (request, response) ->
-  response.send 200, "Dead end."
+router.bind (request, response, next) ->
+  next.send 200, "Dead end."
 
 router.listen config.port

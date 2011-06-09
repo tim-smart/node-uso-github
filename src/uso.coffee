@@ -18,7 +18,7 @@ usoRequest = (uso, options) ->
   if options.body
     options.headers['Content-Length'] = Buffer.byteLength options.body
 
-  request = uso.client.request options.method, options.uri, options.headers
+  request = http.request options.method, options.uri, options.headers
   request.on 'response', (response) ->
     response.setEncoding 'utf8'
     body = ''
