@@ -13,10 +13,16 @@ uso = new Uso config.uso.username, config.uso.password
 SCRIPTS_PATH = path.join __dirname, '..', config.db_path
 
 loadScripts = (json) ->
-  try
-    scripts = JSON.parse json
-  catch err
-    console.error err.stack
+  fs.readFile SCRIPTS_PATH, 'utf', (error, json) ->
+    if error
+      console.error error.stack
+      return console.log '[DB] Could not reload scripts'
+
+    try
+      scripts = JSON.parse json
+    catch err
+      console.error err.stack
+      console.log '[DB] Error parsing json'
 
 try
   scripts = JSON.parse fs.readFileSync SCRIPTS_PATH, 'utf8'
@@ -24,7 +30,8 @@ try
   fs.watchFile SCRIPTS_PATH, (current, previous) ->
     if current.mtime.getTime() is previous.mtime.getTime()
       return
-    loadScripts json.trim()
+    console.log '[DB] Reloading scripts'
+    loadScripts()
 catch error
   scripts = {}
 
