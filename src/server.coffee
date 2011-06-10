@@ -26,7 +26,9 @@ createScript = (file, commit) ->
       if error
         return console.log "[USO] Could not log in to create script"
       uso.createScript source, (error, script_id) ->
-        return console.log "[USO] Could not create #{file}." if error
+        if error
+          console.error error.stack
+          return console.log "[USO] Could not create #{file}."
         console.log "[USO] Script #{file} created."
         scripts[file] =
           id:    script_id
