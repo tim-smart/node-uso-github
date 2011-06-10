@@ -21,6 +21,7 @@ loadScripts = (json) ->
 
     try
       scripts = JSON.parse json
+      console.log '[DB] Scripts reloaded'
     catch err
       console.error err.stack
       console.log '[DB] Error parsing json'
