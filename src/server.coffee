@@ -10,15 +10,28 @@ path       = require 'path'
 
 uso = new Uso config.uso.username, config.uso.password
 
-scripts_path = path.join __dirname, '..', config.db_path
+SCRIPTS_PATH = path.join __dirname, '..', config.db_path
+
+loadScripts = (json) ->
+  try
+    scripts = JSON.parse json
+  catch err
+    console.error err.stack
+
 try
-  scripts = JSON.parse fs.readFileSync scripts_path, 'utf8'
+  scripts = JSON.parse fs.readFileSync SCRIPTS_PATH, 'utf8'
+
+  fs.watchFile SCRIPTS_PATH, (current, previous) ->
+    if current.mtime.getTime() is previous.mtime.getTime()
+      return
+    loadScripts json.trim()
 catch error
   scripts = {}
 
+
 saveScripts = (done) ->
-  console.log '[DB] Saving to ' + scripts_path
-  fs.writeFile scripts_path, new Buffer(JSON.stringify scripts, null, '  '), done
+  console.log '[DB] Saving to ' + SCRIPTS_PATH
+  fs.writeFile SCRIPTS_PATH, new Buffer(JSON.stringify scripts, null, '  '), done
 
 createScript = (file, commit) ->
   downloadSource commit.url, file, (source) ->
