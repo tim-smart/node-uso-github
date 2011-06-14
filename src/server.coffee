@@ -122,7 +122,7 @@ createPost = (file, info) ->
     return console.log "[USO] Could not add change log post for #{file}." if error
     console.log "[USO] Added change log entry for #{file}."
 
-router.post('/' + config.hook_path).bind(m.post()).bind (request, response, next) ->
+router.post(config.hook_route).bind(m.post()).bind (request, response, next) ->
   console.log '[GITHUB] Received hook'
 
   # We aren't responding

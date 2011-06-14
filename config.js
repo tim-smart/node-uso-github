@@ -1,20 +1,20 @@
 module.exports = {
-  uso:       {
+  uso:        {
     // Userscript.org e-mail address
     username: '',
     // Password
     password: ''
   },
-  repo:      {
+  repo:       {
     // Allowed github repository owners.
-    owners: ['Tim-Smart'],
+    owners:   ['Tim-Smart'],
     // Branch to watch
-    branch: 'uso'
+    branch:   'uso'
   },
   // Relative / absolute path to save / load scripts from.
-  db_path:   'scripts.json',
+  db_path:    'scripts.json',
   // HTTP /path to listen for Github hooks.
-  hook_path: 'hook',
+  hook_route: /^\/hook\/?/,
   // Port the HTTP server should listen on.
-  port:      8080
+  port:       8080
 };
