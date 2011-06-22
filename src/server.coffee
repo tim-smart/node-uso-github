@@ -54,7 +54,6 @@ createScript = (file, commit) ->
         console.log "[USO] Script #{file} created."
         scripts[file] =
           id:    script_id
-          topic: null
         saveScripts()
         createTopic file, commit
 
@@ -100,7 +99,7 @@ createTopic = (file, commit) ->
   uso.createTopic 'Script', script.id, 'Change Log', body, (error, topic_id) ->
     return console.log "[USO] Could not create change log topic for #{file}." if error
     console.log "[USO] Created change log topic for #{file}."
-    script.topic = topic_id
+    scripts[file].topic = topic_id
     saveScripts()
     createPost file, commit
 
