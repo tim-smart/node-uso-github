@@ -4,8 +4,8 @@ Usage
 -----
 
 By default, node-uso-github (from now on, we will abbreviate this to NUG), will
-store the scripts in `scripts.json`. This path can be changed in `config.js` to whatever
-you please. Its structure is (has to be `JSON.parse`-able):
+store the scripts in `scripts.json`. This path can be changed in `config.js` to
+whatever you please. Its structure is (has to be `JSON.parse`-able):
 
     {
       "uso_custom_search/script.user.js": {
@@ -18,19 +18,22 @@ you please. Its structure is (has to be `JSON.parse`-able):
       }
     }
 
-Make sure you predefine scripts that are already on USO, and are also in one of your
-repositories - otherwise NUG will try to re-create the user-script, likely resulting in
-USO rejecting it due to a duplicate name. Otherwise you will have two of the same script
-with different names (in the case you changed it somewhere along the line).
+Make sure you predefine scripts that are already on USO, and are also in one of
+your repositories - otherwise NUG will try to re-create the user-script, likely
+resulting in USO rejecting it due to a duplicate name. Otherwise you will have
+two of the same script with different names (in the case you changed it
+somewhere along the line).
 
-You then should enter your USO username (e-mail address) and password into the `config.js`,
-the desired `port` to listen on, then start it as a daemon with:
+You then should enter your USO username (e-mail address) and password into the
+`config.js`, the desired `port` to listen on, then start it as a daemon with:
 
     nuhup node lib/server.js &
 
-or set it up with your favorite process manager, like upstart and monit for example.
+or set it up with your favorite process manager, like upstart and monit for
+example.
 
-In the Github repository settings, go to service hooks and add a post-recieve URL to the following:
+In the Github repository settings, go to service hooks and add a post-recieve
+URL to the following:
 
     http://ip.or.host.com:port/hook
 
