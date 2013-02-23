@@ -14,6 +14,15 @@ uso = new Uso config.uso.username, config.uso.password
 SCRIPTS_PATH = path.join __dirname, '..', config.db_path
 scripts      = {}
 
+marked.setOptions(
+  gfm        : true
+  tables     : false
+  breaks     : true
+  smartLists : true
+  sanitize   : true
+  pedantic   : false
+)
+
 loadScripts = (json) ->
   fs.readFile SCRIPTS_PATH, 'utf8', (error, json) ->
     if error
