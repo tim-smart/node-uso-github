@@ -7,21 +7,11 @@ config     = require '../config'
 qs         = require 'querystring'
 fs         = require 'fs'
 path       = require 'path'
-marked     = require 'marked'
 
 uso = new Uso config.uso.username, config.uso.password
 
 SCRIPTS_PATH = path.join __dirname, '..', config.db_path
 scripts      = {}
-
-marked.setOptions(
-  gfm        : true
-  tables     : false
-  breaks     : true
-  smartLists : true
-  sanitize   : true
-  pedantic   : false
-)
 
 loadScripts = (json) ->
   fs.readFile SCRIPTS_PATH, 'utf8', (error, json) ->
@@ -117,12 +107,12 @@ createPost = (file, info) ->
   script = scripts[file]
   return unless script.topic
 
-  body    = '<p>Commits since last version:</p><ul><li>'
+  compare = "#{info.url}/compare/#{info.payload.before}...#{info.payload.after}"
+  body    = "<p><a href=\"#{compare}\">Commits since last version:</a></p><ul><li>"
   commits = []
 
   for commit in info.commits
-    markdownmessage = marked(commit.message)
-    commits.push "<a href='#{info.url}/commit/#{commit.id}'>#{markdownmessage}</a>"
+    commits.push "<pre>#{commit.message}</pre>"
 
   body += commits.join '</li><li>'
   body += '</li></ul>'
@@ -165,14 +155,16 @@ router.post(config.hook_route).bind(m.post()).bind (request, response, next) ->
 
     for file in changed_files when file.match /\.user\.js$/
       changes[file] or=
-        url:     body.repository.url
-        commits: []
+        url:        body.repository.url
+        commits:    []
+        payload:    body
       changes[file].state = 'changed'
       changes[file].commits.push commit
     for file in commit.removed when file.match /\.user\.js$/
       changes[file] or=
-        url:      body.repository.url
-        commits: []
+        url:        body.repository.url
+        commits:    []
+        payload:    body
       changes[file].state = 'removed'
       changes[file].commits.push commit
 
@@ -180,9 +172,10 @@ router.post(config.hook_route).bind(m.post()).bind (request, response, next) ->
   if 0 is Object.keys(changes).length
     for file in Object.keys scripts
       changes[file] =
-        state:   'changed'
-        url:     body.repository.url
-        commits: [id: body.after, message: 'Re-deploy']
+        state:      'changed'
+        url:        body.repository.url
+        commits:    [id: body.after, message: 'Re-deploy']
+        payload:    body
 
   for file, task of changes
     switch task.state

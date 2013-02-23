@@ -6,8 +6,7 @@
   "engine": [ "node >=0.2.0" ],
   "dependencies": {
     "biggie-router": ">=0.1.10",
-    "middleware": "1.0.x",
-    "marked": "0.2.x"
+    "middleware": "1.0.x"
   }
 }
 
