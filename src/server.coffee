@@ -7,6 +7,7 @@ config     = require '../config'
 qs         = require 'querystring'
 fs         = require 'fs'
 path       = require 'path'
+marked     = require 'marked'
 
 uso = new Uso config.uso.username, config.uso.password
 
@@ -111,8 +112,8 @@ createPost = (file, info) ->
   commits = []
 
   for commit in info.commits
-    # TODO: Escape HTML entities in message.
-    commits.push "<a href='#{info.url}/commit/#{commit.id}'>#{commit.message}</a>"
+    markdownmessage = marked(commit.message)
+    commits.push "<a href='#{info.url}/commit/#{commit.id}'>#{markdownmessage}</a>"
 
   body += commits.join '</li><li>'
   body += '</li></ul>'
