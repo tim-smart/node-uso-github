@@ -2,13 +2,13 @@ router     = new (require 'biggie-router')
 m          = require 'middleware'
 https      = require 'https'
 url_parser = require 'url'
-Uso        = require './uso'
+muso       = require 'uso'
 config     = require '../config'
 qs         = require 'querystring'
 fs         = require 'fs'
 path       = require 'path'
 
-uso = new Uso config.uso.username, config.uso.password
+uso = muso.createClient email : config.uso.username, password : config.uso.password
 
 SCRIPTS_PATH = path.join __dirname, '..', config.db_path
 scripts      = {}
@@ -64,7 +64,7 @@ modifyScript = (file, commit) ->
     uso.login (error) ->
       if error
         return console.log "[USO] Could not log in to modify script"
-      uso.updateScript script.id, source, (error, response) ->
+      uso.updateScript id : script.id, source : source, (error, response) ->
         return console.log "[USO] Could not modify #{file}." if error
         console.log "[USO] Script #{file} modified."
         if script.topic
@@ -96,7 +96,7 @@ createTopic = (file, commit) ->
            <p>This change log is auto-generated from the associated
               <a href="#{commit.url}/commits/#{config.repo.branch}">Github commits list</a>.</p>
            """
-  uso.createTopic 'Script', script.id, 'Change Log', body, (error, topic_id) ->
+  uso.createTopic id : script.id, title : 'Change Log', body : body, (error, topic_id) ->
     return console.log "[USO] Could not create change log topic for #{file}." if error
     console.log "[USO] Created change log topic for #{file}."
     scripts[file].topic = topic_id
@@ -117,7 +117,7 @@ createPost = (file, info) ->
   body += commits.join '</li><li>'
   body += '</li></ul>'
 
-  uso.createPost script.topic, body, (error) ->
+  uso.createPost topic : script.topic, body : body, (error) ->
     return console.log "[USO] Could not add change log post for #{file}." if error
     console.log "[USO] Added change log entry for #{file}."
 
